@@ -1,0 +1,331 @@
+openapi: 3.0.0
+info:
+  title: Inforens Chatbot APIs
+  version: 1.0.0
+servers:
+  - url: http://127.0.0.1:5000
+paths:
+  /api/ask:
+    post:
+      summary: Ask chatbot a question
+      tags:
+        - chatbot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                question:
+                  type: string
+                  example: "What scholarships am I eligible for?"
+                sessionId:
+                  type: string
+                userId:
+                  type: string
+              required:
+                - question
+      responses:
+        "200":
+          description: Answer from chatbot
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  answer:
+                    type: string
+                    example: "You are eligible for scholarships X, Y, and Z."
+                  latencyMs:
+                    type: integer
+                    example: 142
+                  messageId:
+                    type: integer
+                    example: 42
+        "400":
+          description: Missing question in request
+        "500":
+          description: Internal server error
+
+  /api/feedback:
+    post:
+      summary: Provide feedback on a message
+      tags:
+        - chatbot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messageId:
+                  type: integer
+                  example: 42
+                thumbsUp:
+                  type: boolean
+                  example: true
+                thumbsDown:
+                  type: boolean
+                  example: false
+                feedback:
+                  type: string
+                  example: "Helpful answer"
+              required:
+                - messageId
+      responses:
+        "200":
+          description: Feedback saved successfully
+        "400":
+          description: Missing messageId
+        "404":
+          description: Message not found
+        "500":
+          description: Internal server error
+
+  /api/scholarships:
+    post:
+      summary: Get scholarships based on criteria
+      tags:
+        - scholarships
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                citizenship:
+                  type: string
+                  example: "Canada"
+                preferred_country:
+                  type: string
+                  example: "USA"
+                level:
+                  type: string
+                  example: "Undergraduate"
+                field:
+                  type: string
+                  example: "Computer Science"
+              required:
+                - citizenship
+                - preferred_country
+                - level
+                - field
+      responses:
+        "200":
+          description: List of scholarships found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  scholarships:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        amount:
+                          type: string
+                        deadline:
+                          type: string
+                  prompt:
+                    type: string
+        "400":
+          description: Missing required fields
+        "500":
+          description: Internal server error
+
+  /api/sop:
+    post:
+      summary: Generate statement of purpose (SOP)
+      tags:
+        - sop
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                country_of_origin:
+                  type: string
+                intended_degree:
+                  type: string
+                preferred_country:
+                  type: string
+                field_of_study:
+                  type: string
+                preferred_uni:
+                  type: string
+              required:
+                - name
+                - country_of_origin
+                - intended_degree
+                - preferred_country
+                - field_of_study
+                - preferred_uni
+      responses:
+        "200":
+          description: Generated SOP and prompt
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sop:
+                    type: string
+                    example: "This is a statement of purpose text..."
+                  prompt:
+                    type: string
+                  word_count:
+                    type: integer
+        "400":
+          description: Missing fields
+        "500":
+          description: Internal server error
+
+  /api/sop/download/pdf:
+    post:
+      summary: Download generated SOP as PDF
+      tags:
+        - sop
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sop:
+                  type: string
+              required:
+                - sop
+      responses:
+        "200":
+          description: PDF file download
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Missing SOP text
+        "500":
+          description: Internal server error
+
+  /api/sop/download/docx:
+    post:
+      summary: Download generated SOP as DOCX
+      tags:
+        - sop
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sop:
+                  type: string
+              required:
+                - sop
+      responses:
+        "200":
+          description: DOCX file download
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Missing SOP text
+        "500":
+          description: Internal server error
+
+  /api/cv/download/docx:
+    post:
+      summary: Download generated CV as DOCX
+      tags:
+        - cv
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workflow:
+                  type: string
+              required:
+                - workflow
+      responses:
+        "200":
+          description: DOCX file download
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Missing workflow field
+        "500":
+          description: Internal server error
+
+  /api/cv/generate/coverLetter:
+    post:
+      summary: Generate cover letter based on CV data
+      tags:
+        - cv
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Generated cover letter DOCX file
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Missing JSON body
+        "500":
+          description: Internal server error
+
+  /api/upload-cv:
+    post:
+      summary: Upload a CV file for parsing
+      tags:
+        - cv
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required:
+                - file
+      responses:
+        "200":
+          description: Parsed CV info returned as JSON
+          content:
+            application/json:
+              schema:
+                type: object
+        "400":
+          description: Missing or invalid file
+        "500":
+          description: Internal server error
