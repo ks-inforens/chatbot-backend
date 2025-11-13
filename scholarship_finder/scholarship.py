@@ -32,35 +32,6 @@ def get_user_details():
     }
 
 def build_prompt(user):
-    base = (
-        f"List only the current scholarships available to international students from {user['citizenship']} "
-        f"who want to pursue {user['level']} studies in {user['preferred_country']} in the field of {user['field']}."
-    )
-
-    if user["preferred_universities"]:
-        unis = ", ".join(user["preferred_universities"])
-        base += f" The student prefers the following universities: {unis}. Prioritize any relevant scholarships from them."
-    if user["course_intake"]:
-        base += f" The course intake is {user['course_intake']}."
-    if user["academic_perf"]:
-        base += f" Academic performance: {user['academic_perf']}."
-    if user["age"]:
-        base += f" Age: {user['age']}."
-    if user["gender"]:
-        base += f" Gender: {user['gender']}."
-    if user["disability"]:
-        base += f" Disability status: {user['disability']}."
-    if user["extracurricular"]:
-        base += f" Extracurricular activities: {user['extracurricular']}."
-
-    base += (
-        "\nOnly list the scholarships. For each, include ONLY the name. "
-        "Do not include internal thoughts, reasoning, or citations. Don't write anything else."
-    )
-
-    return base.strip()
-
-def build_prompt(user):
     lines = [
         "You are an expert on global scholarships. A student has provided their profile details:\n",
     ]
@@ -85,8 +56,8 @@ def build_prompt(user):
         lines.append(f"Date of Birth: {user['dob']} - use this to calculate age")
     if user.get('gender'):
         lines.append(f"Gender: {user['gender']}")
-    if user.get('extracurricular'):
-        lines.append(f"Extracurricular activities: {user['extracurricular']}")
+    if len(user.get("activity", [])) > 0:
+        lines.append(f"Extracurricular activities: {user['activity'][0]['description']}")
 
     lines.append("""
 Based on this information, recommend the most relevant scholarships for this student.
