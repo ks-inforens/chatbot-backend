@@ -7,13 +7,33 @@ from cv_builder.generate_cv import call_perplexity
 def extract_info_from_pdf(file_path):
     with pdfplumber.open(file_path) as pdf:
         text = "\n".join(page.extract_text() or "" for page in pdf.pages)
-    return extract_info_from_text(text)
+    return extract_json_object(extract_info_from_text(text))
 
 #extract text from doc
 def extract_info_from_docx(file_path):
     doc = Document(file_path)
     text = "\n".join(p.text for p in doc.paragraphs)
-    return extract_info_from_text(text)
+    return extract_json_object(extract_info_from_text(text))
+
+def extract_json_object(text):
+    text = re.sub(r'^`{3,}\w*\s*', '', text)
+    text = re.sub(r'`{3,}\s*$', '', text)
+
+    start = text.find('{')
+    if start == -1:
+        return None  
+
+    depth = 0
+    for i in range(start, len(text)):
+        if text[i] == '{':
+            depth += 1
+        elif text[i] == '}':
+            depth -= 1
+            if depth == 0:
+                end = i + 1
+                json_str = text[start:end]
+                return json_str
+    return None
 
 #extract required data from extracted text
 def extract_info_from_text(text):
@@ -64,7 +84,8 @@ def extract_info_from_text(text):
                 -> title: the name/title of the additional section\n
                 -> desc: a description of the key information relative to that section (could be results, achievements, responsibilities, etc) \n\n
                 If any of the fields are missing, assign the field with no value (do not fill in that field), leave it as '' (an empty string).\n
-                Strictly start and end the response with a curly bracket, do not include any other characters or text in the start or end.
+                
+                IMPORTANT: Return as a strict JSON response starting and ending with a curly bracket.
             """
     
     return call_perplexity(prompt)

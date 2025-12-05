@@ -1,11 +1,7 @@
 import re
 
-def linkify_urls(text):
-    url_pattern = r"https?://[^\s\)\]\}]+"
-
-    def replacer(match):
-        url = match.group(0)
-        cleaned_url = url.replace('--', '')
-        return f'[{cleaned_url}]({cleaned_url})'
-
-    return re.sub(url_pattern, replacer, text)
+def clean_json(s):
+    s = re.sub(r',\s*([}\]])', r'\1', s)
+    s = re.sub(r'\[\s*(https?://[^\s\]]+?)\s*,\s*\]', r'"\1"', s)
+    s = re.sub(r'"(\[https?://[^\]]+\])"', r'"\1"', s)
+    return s

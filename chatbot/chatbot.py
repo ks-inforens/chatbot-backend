@@ -1,7 +1,8 @@
 import requests
 import re
-
-from chatbot.helper import linkify_urls
+import json
+from chatbot.helper import clean_json
+from cv_builder.parse_cv import extract_json_object
 
 class PerplexityChatbot:
     def __init__(self, api_key, content_file_path="inforens_scraped_data.txt"):
@@ -44,6 +45,9 @@ class PerplexityChatbot:
             7. Each response MUST contain at least ONE CTA/link to the most relevant Inforens page based on the context of the question.\\n\
             8. When aked to present information in a table, USE A LISTING APPROACH instead, DO NOT display information as a Markdown table.\\n\
             9. Never mention or compare competitors. Do not use citation numbers, footnotes, markdown links, or brackets—only add URLs as plain text in sentences.\\n\\n\
+            10. Return the answer in a JSON format with the following keys: answer and links (ensure no links are included in the answer).\\n\
+                a. "answer": "The answer to the question - NO LINKS INCLUDED"
+                b. "links": ["https://www.inforens.com/contact-us", "https://www.inforens.com/guides"]
             Inforens Content:\\n{self.full_text}\\n\\n\
             Question: {user_question}\\n\
             Answer:"
@@ -69,7 +73,8 @@ class PerplexityChatbot:
             response.raise_for_status()
             raw_answer = response.json()['choices'][0]['message']['content']
             processed_answer = self._postprocess_answer(raw_answer)
-            processed_answer = linkify_urls(processed_answer)
-            return processed_answer.strip()
+            processed_answer = extract_json_object(processed_answer)
+            processed_answer = clean_json(processed_answer)
+            return json.loads(processed_answer)
         except Exception as e:
             return f"API request failed: {str(e)}"

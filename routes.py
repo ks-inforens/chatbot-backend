@@ -5,7 +5,7 @@ from chatbot.chatbot import PerplexityChatbot
 from scholarship_finder.scholarship import build_prompt as scholarship_prompt, fetch_scholarships
 from sop_builder.sop_builder import generate_sop, save_pdf, save_docx
 from cv_builder.save import save_as_docx  
-from cv_builder.parse_cv import extract_info_from_pdf, extract_info_from_docx
+from cv_builder.parse_cv import extract_info_from_pdf, extract_info_from_docx, extract_json_object
 from cv_builder.prompt_builder import build_prompt_CV as cv_prompt
 from cv_builder.generate_cv import call_perplexity
 from flasgger import swag_from
@@ -64,7 +64,7 @@ def ask():
             session_id=session_id,
             user_id=user_id,
             question=question,
-            answer=raw_answer,
+            answer=raw_answer["answer"],
             model="perplexity-sonar",
             latency_ms=latency_ms,
             success=True,
@@ -76,7 +76,8 @@ def ask():
         db.session.commit()
 
         return jsonify({
-            "answer": raw_answer,
+            "answer": raw_answer["answer"],
+            "links": raw_answer["links"],
             "latencyMs": latency_ms,
             "messageId": query.id
         })
@@ -141,6 +142,8 @@ def scholarships():
 
         prompt = scholarship_prompt(data)
         results = fetch_scholarships(prompt)  
+
+        results = extract_json_object(results)
 
         scholarships_data = json.loads(results)
 
